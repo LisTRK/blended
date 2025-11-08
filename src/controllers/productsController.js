@@ -23,3 +23,14 @@ export const createProduct = async (req, res)=>{
 const newProduct = await Product.create(req.body);
 res.status(201).json(newProduct);
 }
+
+export const updateProduct = async (req, res) => {
+    const { productId } = req.params;
+    const updatedProduct = await Product.findByIdAndUpdate(productId, req.body, { new: true });
+
+    if (!updatedProduct) {
+    throw createHttpError(404, 'Product not found');
+    }
+
+    res.status(200).json(updatedProduct);
+}
