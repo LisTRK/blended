@@ -16,3 +16,10 @@ export const getProductById = async (req, res) => {
 
     res.status(200).json(product);
 }
+
+
+
+export const createProduct = async (req, res)=>{
+const newProduct = await Product.create(req.body);
+res.status(201).json(newProduct);
+}
