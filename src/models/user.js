@@ -8,4 +8,10 @@ password: {type: String, required: true, trim: true}
 {timestamps: true}
 )
 
+userSchema.methods.toJSON = function () {
+  const obj = this.toObject();
+  delete obj.password;
+  return obj;
+};
+
 export const User = model('User', userSchema);
