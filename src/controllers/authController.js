@@ -3,6 +3,8 @@ import { User } from "../models/user.js";
 import bcrypt from 'bcrypt';
 import { createSession, setSessionCookies } from "../services/auth.js";
 import { Session } from "../models/session.js";
+import jwt from 'jsonwebtoken';
+import { sendMail } from '../utils/sendMail.js';
 
 export const userRegister = async (req, res) => {
   const { name, email, password } = req.body;
@@ -88,3 +90,40 @@ export const refreshSession = async (req, res) => {
     message: "Successfully refreshed a session!",
   })
 }
+
+
+export const requestResetEmail = async (req, res) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw createHttpError(404, "User not found");
+  }
+
+const resetToken = jwt.sign(
+  { sub: user._id, email },
+  process.env.JWT_SECRET,
+  { expiresIn: '20m'},
+);
+
+const link = `${process.env.FRONTEND_DOMAIN}/reset-password?resetToken=${resetToken}`;
+
+
+try {
+  await sendMail({
+    from: process.env.SMTP_FROM,
+    to: email,
+    subject: 'Reset your password',
+    html: `<p>Click <a href=${link}>here</a> to reset your password!</p>
+`
+  })
+} catch {
+throw createHttpError(500, "Failed to send the email");
+}
+
+res.status(200).json({
+  message: 'Password reset email sent successfully',
+});
+}
+
